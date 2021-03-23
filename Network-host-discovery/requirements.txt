@@ -1,0 +1,4 @@
+python-daemon==2.3.0
+scapy==2.4.4
+mac-vendor-lookup==0.1.11
+py-cui==0.1.3
