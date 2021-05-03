@@ -1,14 +1,20 @@
 import { compress, decompress } from 'lz-string';
 import { v4 as uuid } from 'uuid';
 import { filter, find, get, set, unset } from 'lodash';
+import { EventEmitter } from 'events';
 
 export class StorageManager<V> {
 	private compressionStrategy = compress;
 	private decompressionStrategy = decompress;
 	private _vault: V = {} as any;
+	private event$ = new EventEmitter();
 
 	constructor(private engine: Storage, private storeKey: string) {
 		this.read();
+	}
+
+	public on() {
+		return this.event$.addListener;
 	}
 
 	public fetch(): V {
@@ -41,7 +47,7 @@ export class StorageManager<V> {
 				findOne: (predicate: any) => find(propValue, predicate),
 				find: (predicate: any) => filter(propValue, predicate),
 			},
-			get: (defaultValue?: any) => propValue ?? defaultValue,
+			value: propValue ?? defaultValue,
 			set: (value: T) => this.set<T>(basePath, value),
 			remove: () => this.remove<T>(basePath),
 		};
@@ -75,6 +81,7 @@ export class StorageManager<V> {
 			return;
 		}
 		this._vault = data;
+		this.event$.emit('write');
 		this.engine.setItem(
 			this.storeKey,
 			this.toSafeString(this.compress(data))
